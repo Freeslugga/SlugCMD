@@ -25,7 +25,7 @@ pub fn get_terminal_size() -> io::Result<(u16, u16)> {
 }
 
 pub fn set_terminal_handle(hdl: DWORD) -> bool {
-
+    true
 }
 
 pub struct Terminal {
