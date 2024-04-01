@@ -9,7 +9,7 @@ use std::os::windows::ffi::OsStrExt;
 use winapi::um::winuser::{CreateWindowExW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, LoadCursorW, LoadIconW, MessageBoxW, WNDCLASSW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, RegisterClassW, MSG, TranslateMessage, DispatchMessageW, DefWindowProcW};
 
 pub struct Window {
-    hwnd: HWND,
+    pub hwnd: HWND,
 }
 
 impl Window {

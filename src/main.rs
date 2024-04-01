@@ -3,10 +3,12 @@ mod terminal;
 mod popup;
 mod window;
 
+use std::ptr::{null, null_mut};
 use enable_ansi_support::enable_ansi_support;
 use crate::color::{Color, create_color_string};
 use crate::popup::Popup;
 use crate::terminal::{get_terminal_size};
+use crate::window::Window;
 
 fn main() {
     enable_ansi_support().unwrap();
@@ -20,7 +22,6 @@ fn main() {
         "Test".encode_utf16().chain(Some(0)).collect(),
         "Fart".encode_utf16().chain(Some(0)).collect());
     popup.open();
-    while true {
-
-    }
+    let mut window = Window::new("test", 800, 600).unwrap();
+    window.run_message_loop();
 }
