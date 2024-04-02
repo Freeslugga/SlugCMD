@@ -1,12 +1,12 @@
 use std::ffi::c_int;
 use std::ptr::{null, null_mut};
 use winapi::um::winuser;
-use winapi::um::wingdi::GetStockObject;
+use winapi::um::wingdi::{GetStockObject, Rectangle};
 use winapi::shared::minwindef::{UINT, WPARAM, LPARAM, LRESULT};
 use winapi::shared::windef::{HWND};
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
-use winapi::um::winuser::{CreateWindowExW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, LoadCursorW, LoadIconW, MessageBoxW, WNDCLASSW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, RegisterClassW, MSG, TranslateMessage, DispatchMessageW, DefWindowProcW};
+use winapi::um::winuser::{CreateWindowExW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, LoadCursorW, LoadIconW, MessageBoxW, WNDCLASSW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, RegisterClassW, MSG, TranslateMessage, DispatchMessageW, DefWindowProcW, PAINTSTRUCT, EndPaint, BeginPaint};
 
 pub struct Window {
     pub hwnd: HWND,
@@ -76,8 +76,27 @@ impl Window {
         match msg {
             winuser::WM_DESTROY => {
                 winuser::PostQuitMessage(0);
+                println!("Window closing.");
                 0
             },
+            winuser::WM_PAINT => {
+                let mut ps: PAINTSTRUCT = std::mem::zeroed();
+                let hdc = BeginPaint(hwnd, &mut ps);
+
+                Rectangle(hdc, 20, 20, 100, 100);
+
+                EndPaint(hwnd, &ps);
+                0
+            },
+            winuser::WM_SIZING => {
+                println!("Resizing window.");
+                0
+            },
+            winuser::WM_SIZE => {
+                println!("Window has been resized.");
+                println!("{:?}", l_param);
+                0
+            }
             _=> winuser::DefWindowProcW(hwnd, msg, w_param, l_param),
         }
     }
