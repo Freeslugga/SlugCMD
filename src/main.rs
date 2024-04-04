@@ -9,8 +9,8 @@ use crate::color::{Color, create_color_string};
 use crate::popup::Popup;
 use crate::terminal::{get_terminal_size};
 use crate::window::Window;
-
 fn main() {
+    #![windows_subsystem = "windows"]
     enable_ansi_support().unwrap();
     println!("Ansi support enabled in terminal.");
     let str = create_color_string("This is a test".to_string(), Color::LMagenta);
@@ -22,6 +22,6 @@ fn main() {
         "Test".encode_utf16().chain(Some(0)).collect(),
         "Fart".encode_utf16().chain(Some(0)).collect());
     popup.open();
-    let mut window = Window::new("test", 800, 600).unwrap();
+    let mut window = Window::new("I lick windows V1.0", 800, 600).unwrap();
     window.run_message_loop();
 }
