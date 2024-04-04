@@ -2,7 +2,7 @@ use std::ffi::c_int;
 use std::ptr::{null, null_mut};
 use winapi::um::winuser;
 use winapi::um::wingdi::{GetStockObject, Rectangle};
-use winapi::shared::minwindef::{UINT, WPARAM, LPARAM, LRESULT};
+use winapi::shared::minwindef::{UINT, WPARAM, LPARAM, LRESULT, LOWORD, HIWORD};
 use winapi::shared::windef::{HWND};
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
@@ -10,6 +10,8 @@ use winapi::um::winuser::{CreateWindowExW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT
 
 pub struct Window {
     pub hwnd: HWND,
+    pub width: i32,
+    pub height: i32,
 }
 
 impl Window {
@@ -58,7 +60,8 @@ impl Window {
                 return Err(error_msg.to_string());
             }
 
-            Ok(Window { hwnd })
+
+            Ok(Window { hwnd, width, height })
         }
     }
 
@@ -94,10 +97,12 @@ impl Window {
             },
             winuser::WM_SIZE => {
                 println!("Window has been resized.");
-                println!("{:?}", l_param);
+                let width: isize = (LOWORD(l_param as u32) as isize) + 16;
+                let height: isize = (HIWORD(l_param as u32) as isize) + 39;
+                println!("Width: {}, Height: {}", width, height);
                 0
             }
-            _=> winuser::DefWindowProcW(hwnd, msg, w_param, l_param),
+            _=> DefWindowProcW(hwnd, msg, w_param, l_param),
         }
     }
 }
