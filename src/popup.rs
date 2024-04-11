@@ -1,5 +1,3 @@
-use std::io;
-
 use std::ptr::null_mut as NULL;
 use winapi::um::winuser;
 

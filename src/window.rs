@@ -1,17 +1,21 @@
 use std::ffi::c_int;
-use std::ptr::{null, null_mut};
+use std::ptr::{null_mut};
 use winapi::um::winuser;
-use winapi::um::wingdi::{GetStockObject, Rectangle};
+use winapi::um::wingdi::{GetStockObject};
 use winapi::shared::minwindef::{UINT, WPARAM, LPARAM, LRESULT, LOWORD, HIWORD};
 use winapi::shared::windef::{HWND};
 use std::ffi::OsStr;
 use std::os::windows::ffi::OsStrExt;
 use winapi::um::winuser::{CreateWindowExW, CS_HREDRAW, CS_VREDRAW, CW_USEDEFAULT, LoadCursorW, LoadIconW, MessageBoxW, WNDCLASSW, WS_OVERLAPPEDWINDOW, WS_VISIBLE, RegisterClassW, MSG, TranslateMessage, DispatchMessageW, DefWindowProcW, PAINTSTRUCT, EndPaint, BeginPaint};
+use crate::draw;
+use crate::logger::Logger;
 
 pub struct Window {
     pub hwnd: HWND,
     pub width: i32,
     pub height: i32,
+    pub x: i32,
+    pub y: i32,
 }
 
 impl Window {
@@ -60,15 +64,18 @@ impl Window {
                 return Err(error_msg.to_string());
             }
 
+            let mut window = Window { hwnd, width, height, x: 0, y: 0 };
 
-            Ok(Window { hwnd, width, height })
+            winuser::SetWindowLongPtrW(hwnd, winuser::GWLP_USERDATA, &mut window as *mut _ as isize);
+
+            Ok(window)
         }
     }
 
     pub fn run_message_loop(&self) {
         unsafe {
             let mut msg: MSG = std::mem::zeroed();
-            while winapi::um::winuser::GetMessageW(&mut msg, null_mut(), 0, 0) > 0 {
+            while winuser::GetMessageW(&mut msg, null_mut(), 0, 0) > 0 {
                 TranslateMessage(&msg);
                 DispatchMessageW(&msg);
             }
@@ -76,32 +83,52 @@ impl Window {
     }
 
     unsafe extern "system" fn window_proc(hwnd: HWND, msg: UINT, w_param: WPARAM, l_param: LPARAM) -> LRESULT {
+
+        let window_ptr = winuser::GetWindowLongPtrW(hwnd, winuser::GWLP_USERDATA) as *mut Window;
+        if window_ptr.is_null() {
+            return DefWindowProcW(hwnd, msg, w_param, l_param);
+        }
+        let window = &mut *window_ptr;
+
+        let mut logger = Logger::new();
+
         match msg {
             winuser::WM_DESTROY => {
                 winuser::PostQuitMessage(0);
-                println!("Window closing.");
+                logger.log_warning("Window has been destroyed.");
                 0
             },
             winuser::WM_PAINT => {
                 let mut ps: PAINTSTRUCT = std::mem::zeroed();
                 let hdc = BeginPaint(hwnd, &mut ps);
 
-                Rectangle(hdc, 20, 20, 100, 100);
+                draw::draw_to_screen(hdc);
 
                 EndPaint(hwnd, &ps);
                 0
             },
             winuser::WM_SIZING => {
-                println!("Resizing window.");
+                logger.log("Window is being resized.");
                 0
             },
             winuser::WM_SIZE => {
-                println!("Window has been resized.");
-                let width: isize = (LOWORD(l_param as u32) as isize) + 16;
-                let height: isize = (HIWORD(l_param as u32) as isize) + 39;
-                println!("Width: {}, Height: {}", width, height);
+                logger.log("Window has been resized.");
+                let width: isize = LOWORD(l_param as u32) as isize;
+                let height: isize = HIWORD(l_param as u32) as isize;
+                window.width = width as i32;
+                window.height = height as i32;
+                logger.log(&format!("Width: {}, Height: {}", window.width, window.height));
                 0
-            }
+            },
+            winuser::WM_MOVE => {
+                logger.log("Window is being moved.");
+                let x = LOWORD(l_param as u32) as isize;
+                let y = HIWORD(l_param as u32) as isize;
+                window.x = x as i32;
+                window.y = y as i32;
+                logger.log(&format!("X: {}, Y: {}", window.x, window.y));
+                0
+            },
             _=> DefWindowProcW(hwnd, msg, w_param, l_param),
         }
     }

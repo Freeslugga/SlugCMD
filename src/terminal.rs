@@ -4,7 +4,7 @@ use winapi::um::wincon::{GetConsoleScreenBufferInfo, CONSOLE_SCREEN_BUFFER_INFO}
 use winapi::um::winnt::HANDLE;
 use winapi::um::handleapi::INVALID_HANDLE_VALUE;
 use winapi::um::winbase::STD_OUTPUT_HANDLE;
-use winapi::shared::minwindef::DWORD;
+// use winapi::shared::minwindef::DWORD;
 
 pub fn get_terminal_size() -> io::Result<(u16, u16)> {
     unsafe {
@@ -24,12 +24,8 @@ pub fn get_terminal_size() -> io::Result<(u16, u16)> {
     }
 }
 
-pub fn set_terminal_handle(hdl: DWORD) -> bool {
-    true
-}
-
-pub struct Terminal {
+/* pub struct Terminal {
     window_size: (u32, u32),
     cursor_position: (u32, u32),
     terminal_handle: DWORD
-}
+} */
